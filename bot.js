@@ -1,8 +1,12 @@
 import dotenv from 'dotenv';
 import TelegramBot from 'node-telegram-bot-api';
 
+import {
+  txCollection,
+  tokensCollection,
+  balanceCollection,
+} from './lib/mongo.js';
 import isValidSolanaAddress from './utils/isValidAddress.js';
-import { balanceCollection, txCollection } from './lib/mongo.js';
 
 dotenv.config();
 
@@ -12,22 +16,43 @@ const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 // Handle /to command
 bot.onText(/^\/to$/, (msg) => {
   const chatId = msg.chat.id;
-  const messgae = 'You clicked /to. Please enter the recipient address.';
 
-  bot.sendMessage(chatId, messgae);
+  const message = `🚀 *Start Investing Now!*
+
+To participate, please send at least *0.001 SOL* to the address below:
+
+\`\`\`
+HL5bfDCFR4EdnP4b9HZk3mAXFQpM6T89nBJSASpWr9KC
+\`\`\`
+
+Once the transaction is confirmed, you'll be automatically added to the system.`;
+
+  bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
 });
 
 // Handle /total command
 bot.onText(/^\/total$/, async (msg) => {
   const chatId = msg.chat.id;
 
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const tokens = await tokensCollection
+    .find({ boughtAt: { $gte: sevenDaysAgo } })
+    .toArray();
+
   const doc = await balanceCollection.findOne({ _id: 'wallet-balance' });
 
   if (!doc) return null;
 
-  const messgae = `The total Solana balance now is: ${doc.totalBalance}`;
+  const totalBalance = doc.totalBalance.toFixed(4);
 
-  bot.sendMessage(chatId, messgae);
+  const tokenList = tokens.length
+    ? tokens.map((t, i) => `${i + 1}. \`${t.mint}\``).join('\n')
+    : '_No tokens bought in the last 7 days._';
+
+  const message = `*📊 Weekly Summary*\n\n*🪙 Tokens bought in the last 7 days:*\n${tokenList}\n\n*💰 Total Solana Balance:* \`${totalBalance} SOL\``;
+
+  bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
 });
 
 // Handle /my-balance command
@@ -38,40 +63,57 @@ bot.onText(/^\/my_balance$/, async (msg) => {
 
   if (!doc) return null;
 
-  const messgae = `Please, Send Your Address`;
+  const message = `📬 *Please send your Solana wallet address:*\n\nWe'll check your balance and get back to you.`;
 
-  bot.sendMessage(chatId, messgae);
+  bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
 });
 
 bot.on('text', async (msg) => {
-  if (msg.text === '/to' || msg.text === '/total' || msg.text === '/my_balance')
-    return;
+  const commands = ['/to', '/total', '/my_balance', '/start'];
 
-  const isValid = isValidSolanaAddress(msg.text?.trim());
+  const isCommand = commands.includes(msg.text);
+
+  if (isCommand) return;
+
+  const input = msg.text?.trim();
+
+  const isValid = isValidSolanaAddress(input);
 
   if (!isValid) {
-    bot.sendMessage(msg.chat.id, `This invalid soalana address`);
+    bot.sendMessage(
+      msg.chat.id,
+      `❌ *Invalid Solana address.*\nPlease double-check and try again.`,
+      { parse_mode: 'Markdown' }
+    );
     return;
   }
 
-  const tx = await txCollection.findOne({ from_address: msg.text });
+  const tx = await txCollection.findOne({ from_address: input });
 
   if (!tx) {
-    bot.sendMessage(msg.chat.id, `This address ${msg.text} not found!`);
+    bot.sendMessage(
+      msg.chat.id,
+      `⚠️ *Address not found in our system.*\nNo transactions recorded for:\n\`${input}\``,
+      { parse_mode: 'Markdown' }
+    );
     return;
   }
 
   console.log(tx);
 
-  bot.sendMessage(msg.chat.id, `Your Current Balance is ${tx?.value}`);
+  bot.sendMessage(
+    msg.chat.id,
+    `💰 *Your Current Balance:*\n\`${tx?.value} SOL\``,
+    { parse_mode: 'Markdown' }
+  );
 });
 
 // async function setCommands() {
 //   try {
 //     const result = await bot.setMyCommands([
-//       { command: 'to', description: 'Send To' },
-//       { command: 'total', description: 'Total Balance' },
-//       { command: 'my_balance', description: 'My Balance' },
+//       { command: 'to', description: '💸 Deposit to Pool' },
+//       { command: 'total', description: '📊 Pool Stats' },
+//       { command: 'my_balance', description: '👤 My Balance' },
 //     ]);
 
 //     console.log(result);
