@@ -13,7 +13,7 @@ dotenv.config();
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
-bot.onText(/^\/start$/, (msg) => {
+bot.onText(/^\/start$/, async (msg) => {
   const chatId = msg.chat.id;
 
   const message = `👋 *Welcome to Solana Ritual Bot!*
@@ -32,7 +32,11 @@ Track your balance, see what was bought, and ride the wave.
 /total – View tokens bought in the last 7 days  
 /my_balance – Check your current balance`;
 
-  bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+  const result = await bot.sendMessage(chatId, message, {
+    parse_mode: 'Markdown',
+  });
+
+  console.log(result);
 });
 
 // Handle /to command
