@@ -14,6 +14,8 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
 bot.onText(/^\/start$/, (msg) => {
+  const chatId = msg.chat.id;
+
   const message = `👋 *Welcome to Solana Ritual Bot!*
 
 Invest in memecoins through the power of our expert callers.
