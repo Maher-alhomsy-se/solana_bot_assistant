@@ -103,7 +103,7 @@ bot.on('text', async (msg) => {
 
   bot.sendMessage(
     msg.chat.id,
-    `💰 *Your Current Balance:*\n\`${tx?.value} SOL\``,
+    `💰 *Your Current Balance:*\n\`${tx?.value} USDT\``,
     { parse_mode: 'Markdown' }
   );
 });
