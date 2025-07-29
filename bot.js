@@ -50,7 +50,7 @@ bot.onText(/^\/total$/, async (msg) => {
     ? tokens.map((t, i) => `${i + 1}. \`${t.mint}\``).join('\n')
     : '_No tokens bought in the last 7 days._';
 
-  const message = `*📊 Weekly Summary*\n\n*🪙 Tokens bought in the last 7 days:*\n${tokenList}\n\n*💰 Total Solana Balance:* \`${totalBalance} SOL\``;
+  const message = `*📊 Weekly Summary*\n\n*🪙 Tokens bought in the last 7 days:*\n${tokenList}\n\n*💰 Total Solana Balance:* \`${totalBalance} USDT\``;
 
   bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
 });
