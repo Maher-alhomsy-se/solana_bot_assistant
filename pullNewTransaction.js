@@ -5,12 +5,17 @@ import { balanceCollection, txCollection } from './lib/mongo.js';
 
 dotenv.config();
 
-let totalBalance = 0;
 let lastTransaction = null;
 const SOLANA_ADDRESS = process.env.WALLET_ADDRESS;
 
 async function pullNewTransaction() {
   try {
+    const balanceDoc = await balanceCollection.findOne({
+      _id: 'wallet-balance',
+    });
+
+    const totalBalance = balanceDoc?.totalBalance ?? 0;
+
     const now = Math.floor(Date.now() / 1000); // current time in seconds
     const SEVEN_DAYS_AGO = now - 7 * 24 * 60 * 60; // 7 days ago in seconds
 
