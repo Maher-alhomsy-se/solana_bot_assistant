@@ -13,6 +13,26 @@ dotenv.config();
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
+bot.onText(/^\/start$/, (msg) => {
+  const message = `👋 *Welcome to Solana Ritual Bot!*
+
+Invest in memecoins through the power of our expert callers.
+
+🔮 *Once you send SOL, the ritual begins.*  
+💀 *No mercy for fat-fingered apes — your tokens are sealed by fate.*  
+📈 Auto-buy calls from trusted alpha hunters.  
+Track your balance, see what was bought, and ride the wave.
+
+*Ready to ape?* Just send, sit back, and let the spirits trade for you.
+
+➡️ Available commands:
+/to – Get deposit address  
+/total – View tokens bought in the last 7 days  
+/my_balance – Check your current balance`;
+
+  bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+});
+
 // Handle /to command
 bot.onText(/^\/to$/, (msg) => {
   const chatId = msg.chat.id;
