@@ -88,7 +88,7 @@ bot.onText(/^\/total$/, async (msg) => {
 
   const message = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${tokenList}\n\n<b>💰 Total Solana Balance:</b> <code>${totalBalance} USDT</code>`;
 
-  bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+  bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
 });
 
 // Handle /my-balance command
