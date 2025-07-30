@@ -14,7 +14,7 @@ async function pullNewTransaction() {
       _id: 'wallet-balance',
     });
 
-    const totalBalance = balanceDoc?.totalBalance ?? 0;
+    let totalBalance = balanceDoc?.totalBalance ?? 0;
 
     const now = Math.floor(Date.now() / 1000); // current time in seconds
     const SEVEN_DAYS_AGO = now - 7 * 24 * 60 * 60; // 7 days ago in seconds
