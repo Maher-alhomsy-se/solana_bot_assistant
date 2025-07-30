@@ -149,11 +149,22 @@ bot.on('text', async (msg) => {
     return;
   }
 
+  const balanceDoc = await balanceCollection.findOne({
+    _id: 'wallet-balance',
+  });
+
+  const totalBalance = balanceDoc?.totalBalance ?? 0;
+
+  const percentage =
+    totalBalance > 0 ? ((tx.value / totalBalance) * 100).toFixed(2) : '0.00';
+
   console.log(tx);
 
   bot.sendMessage(
     msg.chat.id,
-    `💰 *Your Current Balance:*\n\`${tx?.value} USDT\``,
+    `✅ *Your Contribution:*\n` +
+      `💵 Amount Sent: \`${tx.value} USDT\`\n` +
+      `📊 Share of Total Pool: \`${percentage}%\``,
     { parse_mode: 'Markdown' }
   );
 });
