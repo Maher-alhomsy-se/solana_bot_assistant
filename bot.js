@@ -58,10 +58,13 @@ Once the transaction is confirmed, you'll be automatically added to the system.`
 bot.onText(/^\/total$/, async (msg) => {
   const chatId = msg.chat.id;
 
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const now = new Date();
+
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   const tokens = await tokensCollection
     .find({ boughtAt: { $gte: sevenDaysAgo } })
+    .sort({ boughtAt: 1 })
     .toArray();
 
   const doc = await balanceCollection.findOne({ _id: 'wallet-balance' });
@@ -70,9 +73,22 @@ bot.onText(/^\/total$/, async (msg) => {
 
   const totalBalance = doc.totalBalance.toFixed(4);
 
-  // const tokenList = tokens.length
-  //   ? tokens.map((t, i) => `${i + 1}. \`${t.mint}\``).join('\n')
-  //   : '_No tokens bought in the last 7 days._';
+  let roundRemaining = 'Unknown';
+
+  if (tokens.length > 0) {
+    const roundStart = new Date(tokens[0].boughtAt);
+    const roundEnd = new Date(roundStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const ms = roundEnd - now;
+
+    if (ms > 0) {
+      const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((ms / (1000 * 60)) % 60);
+      roundRemaining = `${days}d ${hours}h ${minutes}m remaining`;
+    } else {
+      roundRemaining = '⏳ Round ended. Awaiting next cycle.';
+    }
+  }
 
   const tokenList = tokens.length
     ? tokens
@@ -84,9 +100,7 @@ bot.onText(/^\/total$/, async (msg) => {
         .join('\n')
     : '<i>No tokens bought in the last 7 days.</i>';
 
-  // const message = `*📊 Weekly Summary*\n\n*🪙 Tokens bought in the last 7 days:*\n${tokenList}\n\n*💰 Total Solana Balance:* \`${totalBalance} USDT\``;
-
-  const message = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${tokenList}\n\n<b>💰 Total Solana Balance:</b> <code>${totalBalance} USDT</code>`;
+  const message = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${tokenList}\n\n<b>💰 Total Solana Balance:</b> <code>${totalBalance} USDT</code>\n<b>⏳ Time left in current round:</b> ${roundRemaining}`;
 
   bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
 });
