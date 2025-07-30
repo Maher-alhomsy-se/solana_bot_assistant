@@ -70,11 +70,23 @@ bot.onText(/^\/total$/, async (msg) => {
 
   const totalBalance = doc.totalBalance.toFixed(4);
 
-  const tokenList = tokens.length
-    ? tokens.map((t, i) => `${i + 1}. \`${t.mint}\``).join('\n')
-    : '_No tokens bought in the last 7 days._';
+  // const tokenList = tokens.length
+  //   ? tokens.map((t, i) => `${i + 1}. \`${t.mint}\``).join('\n')
+  //   : '_No tokens bought in the last 7 days._';
 
-  const message = `*📊 Weekly Summary*\n\n*🪙 Tokens bought in the last 7 days:*\n${tokenList}\n\n*💰 Total Solana Balance:* \`${totalBalance} USDT\``;
+  const tokenList = tokens.length
+    ? tokens
+        .map((t, i) => {
+          const nameOrMint = t?.name || t.mint;
+          const dexscreenerUrl = `https://dexscreener.com/solana/${t.mint}`;
+          return `${i + 1}. <a href="${dexscreenerUrl}">${nameOrMint}</a>`;
+        })
+        .join('\n')
+    : '<i>No tokens bought in the last 7 days.</i>';
+
+  // const message = `*📊 Weekly Summary*\n\n*🪙 Tokens bought in the last 7 days:*\n${tokenList}\n\n*💰 Total Solana Balance:* \`${totalBalance} USDT\``;
+
+  const message = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${tokenList}\n\n<b>💰 Total Solana Balance:</b> <code>${totalBalance} USDT</code>`;
 
   bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
 });
