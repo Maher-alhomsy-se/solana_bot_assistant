@@ -100,7 +100,7 @@ bot.onText(/^\/total$/, async (msg) => {
         .join('\n')
     : '<i>No tokens bought in the last 7 days.</i>';
 
-  const message = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${tokenList}\n\n<b>💰 Total Solana Balance:</b> <code>${totalBalance} USDT</code>\n<b>⏳ Time left in current round:</b> ${roundRemaining}`;
+  const message = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${tokenList}\n\n<b>💰 Total USDT Balance:</b> <code>${totalBalance} USDT</code>\n<b>⏳ Time left in current round:</b> ${roundRemaining}`;
 
   bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
 });
