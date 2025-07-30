@@ -138,9 +138,9 @@ bot.on('text', async (msg) => {
     return;
   }
 
-  const tx = await txCollection.findOne({ from_address: input });
+  const txList = await txCollection.find({ from_address: input }).toArray();
 
-  if (!tx) {
+  if (txList.length === 0) {
     bot.sendMessage(
       msg.chat.id,
       `⚠️ *Address not found in our system.*\nNo transactions recorded for:\n\`${input}\``,
@@ -149,6 +149,10 @@ bot.on('text', async (msg) => {
     return;
   }
 
+  const userTotal = txList.reduce((sum, tx) => sum + Number(tx.value), 0);
+
+  console.log(`The total balance of ${input} is ${userTotal}`);
+
   const balanceDoc = await balanceCollection.findOne({
     _id: 'wallet-balance',
   });
@@ -156,14 +160,12 @@ bot.on('text', async (msg) => {
   const totalBalance = balanceDoc?.totalBalance ?? 0;
 
   const percentage =
-    totalBalance > 0 ? ((tx.value / totalBalance) * 100).toFixed(2) : '0.00';
-
-  console.log(tx);
+    totalBalance > 0 ? ((userTotal / totalBalance) * 100).toFixed(2) : '0.00';
 
   bot.sendMessage(
     msg.chat.id,
     `✅ *Your Contribution:*\n` +
-      `💵 Amount Sent: \`${tx.value} USDT\`\n` +
+      `💵 Amount Sent: \`${userTotal.toFixed(4)} USDT\`\n` +
       `📊 Share of Total Pool: \`${percentage}%\``,
     { parse_mode: 'Markdown' }
   );
