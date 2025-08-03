@@ -6,7 +6,7 @@ import {
   tokensCollection,
   balanceCollection,
 } from './lib/mongo.js';
-import chunkArray from './utils/chunkArray.js';
+import { splitTokens } from './utils/chunkArray.js';
 import isValidSolanaAddress from './utils/isValidAddress.js';
 
 dotenv.config();
@@ -99,51 +99,22 @@ bot.onText(/^\/total$/, async (msg) => {
     );
   }
 
-  // Limit to 100 clickable links per message
-  const tokenChunks = chunkArray(tokens, 100);
+  // Split tokens into safe-sized messages
+  const messages = splitTokens(tokens);
 
-  // Send each chunk separately
-  for (let chunkIndex = 0; chunkIndex < tokenChunks.length; chunkIndex++) {
-    const chunk = tokenChunks[chunkIndex];
-
-    const tokenList = chunk
-      .map((t, i) => {
-        const index = chunkIndex * 100 + i + 1;
-        const nameOrMint = t?.name || t.mint;
-        const dexscreenerUrl = `https://dexscreener.com/solana/${t.mint}`;
-        return `${index}. <a href="${dexscreenerUrl}">${nameOrMint}</a>`;
-      })
-      .join('\n');
-
-    let message;
-
-    if (chunkIndex === 0) {
-      // Add summary only to first message
-      message = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${tokenList}\n\n<b>💰 Total USDT Balance:</b> <code>${totalBalance} USDT</code>\n<b>⏳ Time left in current round:</b> ${roundRemaining}`;
+  for (let i = 0; i < messages.length; i++) {
+    let text;
+    if (i === 0) {
+      text = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${messages[i]}\n\n<b>💰 Total USDT Balance:</b> <code>${totalBalance} USDT</code>\n<b>⏳ Time left in current round:</b> ${roundRemaining}`;
     } else {
-      // Only tokens for subsequent messages
-      message = tokenList;
+      text = messages[i];
     }
 
-    await bot.sendMessage(chatId, message, {
+    await bot.sendMessage(chatId, text, {
       parse_mode: 'HTML',
       disable_web_page_preview: true,
     });
   }
-
-  // const tokenList = tokens.length
-  //   ? tokens
-  //       .map((t, i) => {
-  //         const nameOrMint = t?.name || t.mint;
-  //         const dexscreenerUrl = `https://dexscreener.com/solana/${t.mint}`;
-  //         return `${i + 1}. <a href="${dexscreenerUrl}">${nameOrMint}</a>`;
-  //       })
-  //       .join('\n')
-  //   : '<i>No tokens bought in the last 7 days.</i>';
-
-  // const message = `📊 <b>Weekly Summary</b>\n\n<b>🪙 Tokens bought in the last 7 days:</b>\n${tokenList}\n\n<b>💰 Total USDT Balance:</b> <code>${totalBalance} USDT</code>\n<b>⏳ Time left in current round:</b> ${roundRemaining}`;
-
-  // bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
 });
 
 // Handle /my-balance command
